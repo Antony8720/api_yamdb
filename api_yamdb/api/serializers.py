@@ -1,8 +1,8 @@
+from django.db.models import Avg
 from rest_framework import serializers
 from reviews.models import Review, Comment, Category, Genre, Title, User
 
 from rest_framework.validators import UniqueValidator
-
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -61,9 +61,9 @@ class UserEditSerializer(serializers.ModelSerializer):
         model = User
         read_only_fields = ('role',)
 
+
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
-    
 
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
@@ -87,28 +87,50 @@ class CommentSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ("name", "slug")
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
-        fields = '__all__'
+        fields = ("name", "slug")
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitlePostSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         many=True,
-        slug_field='name',
+        slug_field='slug',
         queryset=Genre.objects
     )
     category = serializers.SlugRelatedField(
-        slug_field='name',
+        slug_field='slug',
         queryset=Category.objects
     )
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = ("id", "name", "year", "description", "genre", "category")
 
 
+class TitleGetSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+    rating = serializers.SerializerMethodField("get_rating")
+
+    class Meta:
+        fields = (
+            "id",
+            "name",
+            "year",
+            "rating",
+            "description",
+            "genre",
+            "category"
+        )
+        model = Title
+
+    def get_rating(self, title):
+        reviews = Review.objects.filter(title=title)
+        rating = reviews.all().aggregate(Avg("score"))
+        result = rating["score__avg"]
+        return result
