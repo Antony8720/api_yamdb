@@ -1,3 +1,12 @@
+
+from django.contrib.auth.tokens import default_token_generator
+from rest_framework import viewsets, status, permissions
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
+from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from django.shortcuts import render
 from reviews.models import Comment, Review
 from rest_framework import (viewsets,
@@ -9,13 +18,87 @@ from .serializers import (CommentSerializer,
 from .permissions import IsAuthorOrReadOnly
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, filters, viewsets
-from django_filters.rest_framework import DjangoFilterBackend
+#from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 
 from api.permissions import AdminOnlyPermission, SafeMethodOnlyPermission
 from api.serializers import GenreSerializer, CategorySerializer, \
     TitleSerializer
 from reviews.models import Title, Genre, Category
+
+
+from reviews.models import User
+from . serializers import (UserEditSerializer, UserSerializer,
+                           TokenSerializer, SignupSerializer,
+                           UserEditSerializer)
+from . permissions import IsAdmin
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAdmin,)
+    lookup_field = "username"
+
+    @action(
+        methods=[
+            "get",
+            "patch",
+        ],
+        detail=False,
+        url_path="me",
+        permission_classes=[permissions.IsAuthenticated],
+        serializer_class=UserEditSerializer,
+    )
+    def users_own_profile(self, request):
+        user = request.user
+        if request.method == "GET":
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == "PATCH":
+            serializer = self.get_serializer(
+                user,
+                data=request.data,
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+@api_view(['POST'])
+def signup(request):
+    serializer = SignupSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    user = get_object_or_404(User,
+                             username=serializer.validated_data['username'])
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        'registration',
+        f'Код подтверждения:{confirmation_code}',
+        DEFAULT_FROM_EMAIL,
+        [user.email],
+    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def get_token(request):
+    serializer = TokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(User,
+                             username=serializer.validated_data['username'])
+    if default_token_generator.check_token(user,
+                                           serializer
+                                           .validated_data
+                                           ['confirmation_code']):
+        token = AccessToken.for_user(user)
+        return Response({"token": str(token)}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -35,7 +118,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewSerializer
+    serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
@@ -54,7 +137,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    filter_backends = (DjangoFilterBackend,)
+#    filter_backends = (DjangoFilterBackend,)
     pagination_class = LimitOffsetPagination
     permission_classes = (AdminOnlyPermission,)
 
@@ -83,4 +166,5 @@ class CategoryViewSet(viewsets.GenericViewSet,
     search_fields = ("name",)
     pagination_class = LimitOffsetPagination
     permission_classes = (SafeMethodOnlyPermission,)
+
 

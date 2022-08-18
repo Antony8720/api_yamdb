@@ -1,22 +1,117 @@
 from django.db import models
 
+from django.contrib.auth.models import AbstractUser
+
 from django.db.models import IntegerField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth import get_user_model
-=======
 from django.core.validators import MaxValueValidator
 
 from datetime import datetime
 
+class User(AbstractUser):
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
+
+    USER_ROLES = [
+        (USER, 'User'),
+        (MODERATOR, 'Moderator'),
+        (ADMIN, 'Admin'),
+    ]
+
+    username = models.CharField(
+        verbose_name='Имя пользователя',
+        max_length=150,
+        null=True,
+        unique=True
+    )
+    email = models.EmailField(
+        verbose_name='Адрес электронной почты',
+        max_length=254,
+        unique=True
+    )
+    bio = models.TextField(
+        verbose_name='О себе',
+        null=True,
+        blank=True
+    )
+    role = models.CharField(
+        verbose_name='Роль',
+        max_length=50,
+        choices=USER_ROLES,
+        default=USER
+    )
+    confirmation_code = models.TextField(
+        verbose_name='Код подтверждения',
+        blank=True,
+        null=True
+    )
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
+
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'], name='unique_user')
+        ]
+
+
+
+
+
+
 CURRENT_YEAR = datetime.now().year
 
 
-User = get_user_model()
 
 
-#class User():
-#    pass
+class Category(models.Model):
+    name = models.CharField(max_length=150, verbose_name='Имя Категории')
+    slug = models.SlugField(unique=True, verbose_name='Слаг')
 
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+
+
+class Genre(models.Model):
+    name = models.CharField(max_length=150, verbose_name='Имя Жанра')
+    slug = models.SlugField(unique=True, verbose_name='Слаг')
+
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
+
+
+
+
+class Title(models.Model):
+    name = models.CharField(max_length=150, verbose_name='Имя')
+    year = models.IntegerField(
+        validators=[MaxValueValidator(
+            CURRENT_YEAR,
+            message='Год не может быть больше текущего года')])
+    description = models.TextField()
+    genre = models.ManyToManyField(
+        Genre,
+        related_name='titles',
+        verbose_name='жанр',
+    )
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL,
+                                 null=True)
+    rating = models.IntegerField(null=True)
 
 
 class Review(models.Model):
@@ -50,38 +145,3 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(
         'Дата публикации комментария', auto_now_add=True
     )
-
-class Category(models.Model):
-    name = models.CharField(max_length=150, verbose_name='Имя Категории')
-    slug = models.SlugField(unique=True, verbose_name='Слаг')
-
-    class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
-
-
-class Genre(models.Model):
-    name = models.CharField(max_length=150, verbose_name='Имя Жанра')
-    slug = models.SlugField(unique=True, verbose_name='Слаг')
-
-    class Meta:
-        verbose_name = 'Жанр'
-        verbose_name_plural = 'Жанры'
-
-
-
-class Title(models.Model):
-    name = models.CharField(max_length=150, verbose_name='Имя')
-    year = models.IntegerField(
-        validators=[MaxValueValidator(
-            CURRENT_YEAR,
-            message='Год не может быть больше текущего года')])
-    description = models.TextField()
-    genre = models.ManyToManyField(
-        Genre,
-        related_name='titles',
-        verbose_name='жанр',
-    )
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL,
-                                 null=True)
-    rating = models.IntegerField(null=True)
