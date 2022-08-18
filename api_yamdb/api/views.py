@@ -9,7 +9,7 @@ from .serializers import (CommentSerializer,
 from .permissions import IsAuthorOrReadOnly
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, filters, viewsets
-from django_filters.rest_framework import DjangoFilterBackend
+#from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 
 from api.permissions import AdminOnlyPermission, SafeMethodOnlyPermission
@@ -54,7 +54,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    filter_backends = (DjangoFilterBackend,)
+#    filter_backends = (DjangoFilterBackend,)
     pagination_class = LimitOffsetPagination
     permission_classes = (AdminOnlyPermission,)
 
