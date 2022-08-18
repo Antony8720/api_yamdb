@@ -35,7 +35,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewSerializer
+    serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
