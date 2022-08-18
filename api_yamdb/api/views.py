@@ -12,11 +12,14 @@ from reviews.models import User
 from . serializers import (UserEditSerializer, UserSerializer,
                            TokenSerializer, SignupSerializer,
                            UserEditSerializer)
+from . permissions import IsAdmin
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = (IsAdmin,)
+    lookup_field = "username"
 
     @action(
         methods=[
