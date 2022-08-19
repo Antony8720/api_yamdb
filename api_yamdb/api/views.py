@@ -1,31 +1,24 @@
+from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action, api_view, permission_classes
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import action, api_view
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from django.core.mail import send_mail
-from api_yamdb.settings import DEFAULT_FROM_EMAIL
-from django.shortcuts import render
-from reviews.models import Comment, Review
-from .filters import TitleFilter
-from .serializers import (CommentSerializer,
-                          ReviewSerializer, TitlePostSerializer,
-                          TitleGetSerializer)
-from .permissions import IsAuthorOrReadOnly
-from django.shortcuts import get_object_or_404
-from rest_framework import mixins, filters, viewsets
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.pagination import LimitOffsetPagination
+from reviews.models import Category, Genre, Review, Title, User
 
 from api.permissions import AdminOnlyPermission, SafeMethodOnlyPermission
-from api.serializers import GenreSerializer, CategorySerializer
-from reviews.models import Title, Genre, Category
+from api.serializers import CategorySerializer, GenreSerializer
 
-from reviews.models import User
-from .serializers import (UserEditSerializer, UserSerializer,
-                          TokenSerializer, SignupSerializer,
-                          UserEditSerializer)
-from .permissions import IsAdmin
+from .filters import TitleFilter
+from .permissions import IsAdmin, IsAuthorOrReadOnly
+from .serializers import (CommentSerializer, ReviewSerializer,
+                          SignupSerializer, TitleGetSerializer,
+                          TitlePostSerializer, TokenSerializer,
+                          UserEditSerializer, UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -86,7 +79,7 @@ def get_token(request):
                              username=serializer.validated_data['username'])
     if default_token_generator.check_token(user,
                                            serializer
-                                                   .validated_data
+                                           .validated_data
                                            ['confirmation_code']):
         token = AccessToken.for_user(user)
         return Response({"token": str(token)}, status=status.HTTP_200_OK)
@@ -133,7 +126,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
-        if self.request.method in ["POST","PATCH"]:
+        if self.request.method in ["POST", "PATCH"]:
             return TitlePostSerializer
         return TitleGetSerializer
 

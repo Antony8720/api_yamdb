@@ -1,13 +1,10 @@
-from django.db import models
+from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser
-
-from django.db.models import IntegerField
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator
+from django.db import models
+from django.db.models import IntegerField
 
-from datetime import datetime
 
 class User(AbstractUser):
     USER = 'user'
@@ -59,7 +56,6 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
-
     class Meta:
         verbose_name = 'Пользователь'
         constraints = [
@@ -68,13 +64,7 @@ class User(AbstractUser):
         ]
 
 
-
-
-
-
 CURRENT_YEAR = datetime.now().year
-
-
 
 
 class Category(models.Model):
@@ -93,8 +83,6 @@ class Genre(models.Model):
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-
-
 
 
 class Title(models.Model):
@@ -128,7 +116,7 @@ class Review(models.Model):
             MaxValueValidator(10),
             MinValueValidator(1)
         ]
-     )
+    )
     pub_date = models.DateTimeField(
         'Дата публикации отзыва', auto_now_add=True
     )
