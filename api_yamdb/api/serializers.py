@@ -62,22 +62,30 @@ class UserEditSerializer(serializers.ModelSerializer):
         read_only_fields = ('role',)
 
 
+class TitleDefault:
+    requires_context = True
+
+    def __call__(self, serializer_field):
+        return serializer_field.context.get('view').kwargs.get('title_id')
+
+
 class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
+    author = serializers.SlugRelatedField(read_only=True, slug_field='username', default=serializers.CurrentUserDefault(),)
+    title = serializers.HiddenField(default=TitleDefault(),)
 
     class Meta:
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
         model = Review
         validators = [
-            serializers.UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('title', 'author'),
-            )
-        ]
+                serializers.UniqueTogetherValidator(
+                    queryset=Review.objects.all(),
+                    fields=('title', 'author')
+                )
+            ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
+    author = serializers.SlugRelatedField(read_only=True, slug_field='username')
 
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
