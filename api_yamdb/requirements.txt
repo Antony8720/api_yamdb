@@ -3,6 +3,7 @@ certifi==2022.6.15
 charset-normalizer==2.0.12
 Django==2.2.16
 djangorestframework==3.12.4
+djangorestframework-simplejwt
 idna==3.3
 iniconfig==1.1.1
 packaging==21.3
