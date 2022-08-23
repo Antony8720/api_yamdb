@@ -137,8 +137,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleGetSerializer
 
     
-
-
 class GenreViewSet(CreateRetrieveViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
