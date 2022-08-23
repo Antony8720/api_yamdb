@@ -17,8 +17,8 @@ from api.serializers import CategorySerializer, GenreSerializer
 from .filters import TitleFilter
 from .permissions import IsAdmin, IsAuthorOrReadOnly
 from .serializers import (CommentSerializer, ReviewSerializer,
-                          SignupSerializer, TitleSerializer,
-                          TokenSerializer,
+                          SignupSerializer, TitleGetSerializer,
+                          TokenSerializer, TitlePostSerializer,
                           UserEditSerializer, UserSerializer)
 
 class CreateRetrieveViewSet(viewsets.GenericViewSet,
@@ -125,12 +125,16 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(rating=Avg('rewiew_scope')).all()
-    pagination_class = LimitOffsetPagination
-    serializer_class = TitleSerializer
+    queryset = Title.objects.annotate(rating=Avg('reviews__score')).all()
+    paginator_class = LimitOffsetPagination
     permission_classes = (AdminOnlyPermission,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method in ["POST","PATCH"]:
+            return TitlePostSerializer
+        return TitleGetSerializer
 
     
 

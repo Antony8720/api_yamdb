@@ -1,3 +1,4 @@
+from unicodedata import category
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -108,17 +109,29 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ("name", "slug")
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(
-        many=True,
-        slug_field='slug',
-        queryset=Genre.objects
-    )
-    category = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Category.objects
-    )
+class TitleGetSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
+        fields = (
+            'id', 'name', 'year','rating', 'description', 'genre', 'category'
+        )
         model = Title
-        fields = ("id", "name", "year", "description", "genre", "category")
+
+
+class TitlePostSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects, slug_field='slug', many=True
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects, slug_field='slug'
+    )
+    
+
+    class Meta:
+        fields = (
+            'id', 'name', 'year', 'description', 'genre', 'category'
+        )
+        model = Title
