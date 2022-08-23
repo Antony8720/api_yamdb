@@ -2,6 +2,7 @@ from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view
@@ -16,10 +17,15 @@ from api.serializers import CategorySerializer, GenreSerializer
 from .filters import TitleFilter
 from .permissions import IsAdmin, IsAuthorOrReadOnly
 from .serializers import (CommentSerializer, ReviewSerializer,
-                          SignupSerializer, TitleGetSerializer,
-                          TitlePostSerializer, TokenSerializer,
+                          SignupSerializer, TitleSerializer,
+                          TokenSerializer,
                           UserEditSerializer, UserSerializer)
 
+class CreateRetrieveViewSet(viewsets.GenericViewSet,
+                   mixins.ListModelMixin,
+                   mixins.DestroyModelMixin,
+                   mixins.CreateModelMixin):
+    pass
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -119,23 +125,17 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('rewiew_scope')).all()
     pagination_class = LimitOffsetPagination
+    serializer_class = TitleSerializer
     permission_classes = (AdminOnlyPermission,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
 
-    def get_serializer_class(self):
-        if self.request.method in ["POST", "PATCH"]:
-            return TitlePostSerializer
-        return TitleGetSerializer
+    
 
 
-class GenreViewSet(viewsets.GenericViewSet,
-                   mixins.ListModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.CreateModelMixin
-                   ):
+class GenreViewSet(CreateRetrieveViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
@@ -145,11 +145,7 @@ class GenreViewSet(viewsets.GenericViewSet,
     lookup_field = "slug"
 
 
-class CategoryViewSet(viewsets.GenericViewSet,
-                      mixins.ListModelMixin,
-                      mixins.DestroyModelMixin,
-                      mixins.CreateModelMixin
-                      ):
+class CategoryViewSet(CreateRetrieveViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)

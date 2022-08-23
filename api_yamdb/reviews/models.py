@@ -66,19 +66,19 @@ class User(AbstractUser):
 
 CURRENT_YEAR = datetime.now().year
 
-
-class Category(models.Model):
-    name = models.CharField(max_length=150, verbose_name='Имя Категории')
+class UniversalModel(models.Model):
+    name = models.CharField(max_length=150, verbose_name='Имя')
     slug = models.SlugField(unique=True, verbose_name='Слаг')
 
+
+class Category(UniversalModel):
+    
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
 
-class Genre(models.Model):
-    name = models.CharField(max_length=150, verbose_name='Имя Жанра')
-    slug = models.SlugField(unique=True, verbose_name='Слаг')
+class Genre(UniversalModel):
 
     class Meta:
         verbose_name = 'Жанр'
@@ -86,7 +86,7 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=150, verbose_name='Имя')
+    name = models.TextField(verbose_name='Имя')
     year = models.IntegerField(
         validators=[MaxValueValidator(
             CURRENT_YEAR,
