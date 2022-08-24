@@ -1,6 +1,6 @@
 # Проект: API для YAMDB
 
-# Авторы проект
+# Авторы проекта
 **Антон**: https://github.com/Antony8720  
 **Никита**: https://github.com/nikitapatrakov  
 **Алексей**: https://github.com/bainter  
