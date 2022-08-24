@@ -1,5 +1,3 @@
-from unicodedata import category
-from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from reviews.models import Category, Comment, Genre, Review, Title, User
@@ -7,6 +5,7 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
+        max_length=20,
         validators=[
             UniqueValidator(queryset=User.objects.all())
         ],
@@ -26,6 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SignupSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
+        max_length=20,
         validators=[
             UniqueValidator(queryset=User.objects.all())
         ],
@@ -116,7 +116,7 @@ class TitleGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = (
-            'id', 'name', 'year','rating', 'description', 'genre', 'category'
+            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
         )
         model = Title
 
@@ -128,7 +128,6 @@ class TitlePostSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         queryset=Category.objects, slug_field='slug'
     )
-    
 
     class Meta:
         fields = (

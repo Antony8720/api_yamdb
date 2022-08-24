@@ -1,8 +1,8 @@
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view
@@ -18,14 +18,16 @@ from .filters import TitleFilter
 from .permissions import IsAdmin, IsAuthorOrReadOnly
 from .serializers import (CommentSerializer, ReviewSerializer,
                           SignupSerializer, TitleGetSerializer,
-                          TokenSerializer, TitlePostSerializer,
+                          TitlePostSerializer, TokenSerializer,
                           UserEditSerializer, UserSerializer)
 
+
 class CreateRetrieveViewSet(viewsets.GenericViewSet,
-                   mixins.ListModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.CreateModelMixin):
+                            mixins.ListModelMixin,
+                            mixins.DestroyModelMixin,
+                            mixins.CreateModelMixin):
     pass
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -132,11 +134,11 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
-        if self.request.method in ["POST","PATCH"]:
+        if self.request.method in ["POST", "PATCH"]:
             return TitlePostSerializer
         return TitleGetSerializer
 
-    
+
 class GenreViewSet(CreateRetrieveViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer

@@ -10,13 +10,11 @@ class User(AbstractUser):
     USER = 'user'
     MODERATOR = 'moderator'
     ADMIN = 'admin'
-    SUPERUSER = 'superuser'
 
     USER_ROLES = [
         (USER, 'User'),
         (MODERATOR, 'Moderator'),
         (ADMIN, 'Admin'),
-        (SUPERUSER, 'Superuser'),
     ]
 
     username = models.CharField(
@@ -54,10 +52,6 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         return self.role == self.ADMIN
-
-    @property
-    def is_superuser(self):
-        return self.role == self.SUPERUSER
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
