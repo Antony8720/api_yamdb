@@ -10,11 +10,13 @@ class User(AbstractUser):
     USER = 'user'
     MODERATOR = 'moderator'
     ADMIN = 'admin'
+    SUPERUSER = 'superuser'
 
     USER_ROLES = [
         (USER, 'User'),
         (MODERATOR, 'Moderator'),
         (ADMIN, 'Admin'),
+        (SUPERUSER, 'Superuser'),
     ]
 
     username = models.CharField(
@@ -53,6 +55,10 @@ class User(AbstractUser):
     def is_admin(self):
         return self.role == self.ADMIN
 
+    @property
+    def is_superuser(self):
+        return self.role == self.SUPERUSER
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
@@ -66,13 +72,14 @@ class User(AbstractUser):
 
 CURRENT_YEAR = datetime.now().year
 
+
 class UniversalModel(models.Model):
     name = models.CharField(max_length=150, verbose_name='Имя')
     slug = models.SlugField(unique=True, verbose_name='Слаг')
 
 
 class Category(UniversalModel):
-    
+
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
@@ -99,7 +106,6 @@ class Title(models.Model):
     )
     category = models.ForeignKey(Category, on_delete=models.SET_NULL,
                                  null=True)
-
 
 
 class Review(models.Model):
