@@ -51,7 +51,7 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == self.ADMIN
+        return self.role == self.ADMIN or self.is_superuser or self.is_staff
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
